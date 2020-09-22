@@ -45,3 +45,229 @@ Date:   Wed Sep 16 00:55:36 2020 -0700
     Initial commit of os161 for CPEN331
 
 //.......................................//
+
+question1:
+
+There is two different situation, 
+the code excute at 69 of exception-mips1.S, if it is first exception.
+otherwise ir will wxcute at 87 line, due to it is a common exception.
+j common_exception transfer from syscall function bt syscalls to mips_trap in trap.c.
+there is no difference between trap and interrupts. interrupts are a special case of trap. 
+thus, interrupts is a different situation for os161 while in mips_trap.
+
+kern/arch/mips/locore/exception-mips1.S contains trap-handling code. If it's a
+UTLB exception, the first line of code is 69. If it is a general exception, the
+first line is 87. Both are a simple "j common_exception".
+//..........................................................................................................
+question2:
+
+there is a syscall function at 84 of syscalls-mips.S. the trap will be invoked here.
+//..........................................................................................................
+question3:
+
+libc functions are basic function. both libc and kernel are all need to use them.
+//..........................................................................................................
+question4:
+
+the target platform and target machine will configure configures. 
+they may invalidate if they want to port to different hardware.
+//..........................................................................................................
+question5:
+
+the machine-dependent function are all in assembly.
+if the codes are hardware functionality, it should be machine-dependent.
+
+Seperating them is easy for developers to maintain, due to the clear logic. 
+otherwise, it is easy for us to use these codes while we add another hardware.
+//..........................................................................................................
+question6:
+
+there are 37 4-bytes uint32_ts in trapframe.h. Thus, the size of it is 148 bytes.
+the reason why they have this size, because we need them for normal registers and cause register.
+//..........................................................................................................
+question7:
+
+We need to rerun the config if we add or remove a hardware from config or we change the kernel settings.
+If we change the source file, we also need to rerun  the config.
+//..........................................................................................................
+question8:
+
+If you configured DUMBVM or change directives in source files.
+//..........................................................................................................
+question9:
+
+when we change the kernel code.
+//..........................................................................................................
+question10:
+
+we need to add a function like cmd_helloworld in kern/main/menu.c. 
+then, use the corresponding function call.
+//..........................................................................................................
+question11:
+
+Because you can not use the same system call with host system. 
+in addition, there is no compiled utilities for os161.
+//..........................................................................................................
+
+questin12:
+
+On successful return, zero in a3 register; return value in v0
+(v0 and v1 for a 64-bit return value).
+
+On error return, nonzero in a3 register; errno value in v0.
+
+
+//..........................................................................................................
+
+question13:
+
+1. create a new entry in kern/include/kern/syscall.h, it should be different with other entries.
+2. create a case in kern/arch/mips/syscall/syscall.c:syscall() in switch(callno) and if (err)
+3. create a prototype in kern/include/syscall.h.
+4. use this call function in kern/syscall.
+
+how to test
+1.bmake depend
+2.bmake
+3.bmake install in kern/compile/DUMBVM
+
+
+//..........................................................................................................
+
+question14:
+the first function that excutes when os161 starts up is __start ()
+
+
+(gdb) db
+__start () at ../../arch/sys161/main/start.S:54
+54         addiu sp, sp, -24
+
+
+//..........................................................................................................
+
+question15:
+addiu sp, sp, -24    is the first assembly instruction that excutes
+
+(gdb) db
+__start () at ../../arch/sys161/main/start.S:54
+54         addiu sp, sp, -24
+
+//..........................................................................................................
+
+question16:
+
+
+(gdb) break kmain
+Breakpoint 1 at 0x800139e4: file ../../main/main.c, line 211.
+(gdb) break showmenu
+Breakpoint 2 at 0x800143a0: file ../../main/menu.c, line 415.
+(gdb) info break
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x800139e4 in kmain at ../../main/main.c:211
+2       breakpoint     keep y   0x800143a0 in showmenu at ../../main/menu.c:415
+
+//..........................................................................................................
+
+question17:
+The System/161 loader sets up a boot stack for the first processor at the top of physical memory, and passes us a single string argument. 
+Then, set up a stack frame on the real kernel stack.
+After, copy the exception handler code onto the first page of memory.
+Initialize the TLB, Load NULL into the register we use for curthread and Set up the status register.
+At last, load the CPU number into the PTBASE field of the CONTEXT register and Load the GP register.
+We begin to start kernel main function now...
+
+
+
+//..........................................................................................................
+
+
+question18: 
+the anser is jar kmain
+(gdb) n
+215        jal kmain
+
+//..........................................................................................................
+
+question19:
+(gdb) n
+109             ram_bootstrap();
+(gdb) n
+110             proc_bootstrap();
+(gdb) n
+111             thread_bootstrap();
+(gdb) n
+112             hardclock_bootstrap();
+(gdb) n
+113             vfs_bootstrap();
+(gdb) n
+114             kheap_nextgeneration();
+
+these functions are called during early initialization
+
+//..........................................................................................................
+
+question20:
+
+(gdb) c
+Continuing.
+
+Breakpoint 2, thread_bootstrap () at ../../thread/thread.c:357
+357             cpuarray_init(&allcpus);
+(gdb) p *bootcpu
+Cannot access memory at address 0x80000
+
+//..........................................................................................................
+
+question21:
+
+(gdb) n
+thread_bootstrap () at ../../thread/thread.c:367
+367             bootcpu = cpu_create(0);
+(gdb) p *bootcpu
+Cannot access memory at address 0x80000
+(gdb) n
+368             bootthread = bootcpu->c_curthread;
+(gdb) p *bootcpu
+$1 = {c_self = 0x8003af00, c_number = 0, c_hardware_number = 0, c_curthread = 0x8003bf80, c_zombies = {tl_head = {tln_prev = 0x0, tln_next = 0x8003af1c, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af10, tln_next = 0x0, 
+      tln_self = 0x0}, tl_count = 0}, c_hardclocks = 0, c_spinlocks = 0, c_isidle = false, c_runqueue = {tl_head = {tln_prev = 0x0, tln_next = 0x8003af44, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af38, tln_next = 0x0, 
+      tln_self = 0x0}, tl_count = 0}, c_runqueue_lock = {splk_lock = 0, splk_holder = 0x0}, c_ipi_pending = 0, c_shootdown = {{ts_placeholder = 0} <repeats 16 times>}, c_numshootdown = 0, c_ipi_lock = {splk_lock = 0, 
+    splk_holder = 0x0}}
+
+
+//..........................................................................................................
+
+question22:
+
+(gdb) break kmain
+Breakpoint 1 at 0x800139e4: file ../../main/main.c, line 211.
+(gdb) c
+Continuing.
+
+Breakpoint 1, kmain (arguments=0x80035c20 "") at ../../main/main.c:211
+211             boot();
+(gdb) p allcpus
+$1 = {arr = {v = 0x0, num = 0, max = 0}}
+(gdb) cpuarray allcpus
+0 cpus
+
+//..........................................................................................................
+
+question23:
+(gdb) n
+213             menu(arguments);
+(gdb) p allcpus
+$2 = {arr = {v = 0x80039fe0, num = 1, max = 4}}
+(gdb) cpuarray allcpus
+1 cpus
+cpu 0:
+$1 = {c_self = 0x8003af00, c_number = 0, c_hardware_number = 0, c_curthread = 0x8003bf80, c_zombies = {tl_head = {tln_prev = 0x0, tln_next = 0x8003af1c, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af10, tln_next = 0x0, 
+      tln_self = 0x0}, tl_count = 0}, c_hardclocks = 1, c_spinlocks = 0, c_isidle = false, c_runqueue = {tl_head = {tln_prev = 0x0, tln_next = 0x8003af44, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af38, tln_next = 0x0, 
+      tln_self = 0x0}, tl_count = 0}, c_runqueue_lock = {splk_lock = 0, splk_holder = 0x0}, c_ipi_pending = 0, c_shootdown = {{ts_placeholder = 0} <repeats 16 times>}, c_numshootdown = 0, c_ipi_lock = {splk_lock = 0, 
+    splk_holder = 0x0}}
+
+
+
+
+
+
+
