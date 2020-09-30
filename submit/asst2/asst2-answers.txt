@@ -1,0 +1,92 @@
+question1: 
+
+        If the thread want to exit, We will first check the stack guard band.
+        the virtual memory of this thread will be remove and destroied.
+        Then, this thread will be put into zombie state.
+        final, this thread will go itto panic, it will print the argument and passes and then halt this thread.
+
+        similar with exit thred, when the thread needds to sleep, it will check whether this thread is in an interrupt  handler.
+        if it is not in an interrupt handler, it may not sleep.
+        second this thread will hold the spainlock. in addition, this thread is not allowed to hold any other spainlock.
+        then the system will run another thread, due to thread is going to sleep. final this thread go to S_SLEEP state.
+        it will run again if it go to wchan_wakeone function, which wake up the sleep thread.
+
+
+
+question2:
+        in thread.c switchframe_switch is a machine-independent context switch function. in additon, thread_switch was build on these basic.
+        
+question3:
+        S_RUN:running.
+        S_READY:ready to run
+        S_SLEEP:sleeping
+        S_ZOMB:zombie; exited but not yet deleted
+
+question4:
+        Turning interrupts off means that handler cann be calledd until turn on the interrupts
+        
+        We use splhigh to turn off the interrupts, or turn on it by sey proority level zero
+        splx function plays main role to Disable or enable interrupts and adjust curspl setting. Return old
+        spl level.
+
+        it is important to turn off the interrupts, due to we need to make sure operations can complete successfullt.
+        without break by excution.
+
+question5:
+
+        firstly, this thread will use wchan_wakeone() function to wake up another thread.
+        Then We need to grab the thread from the queue by calling thread_make_runnable function,
+        this function will lock the run queue of the target thread's cpu.
+        Then, target thread is now ready to run; put it on the run queue.
+        Sleeping thread will run again when thread_switch is called.
+
+
+question6:What function(s) choose(s) the next thread to run?
+
+        Function scheduler() and thread_switch will choose which thread run.
+        If we do nothing, threads will run in round-robin fashion.
+        
+question7:
+
+        If there is is no users needs, it will visit the thread queue in loop and run thread without priorities with equal time-slice.
+        unless thread_switch is used to switch another thread to run.
+
+question8:
+
+        What role does the hardware timer play in scheduling? 
+        What hardware independent function is called on a timer interrupt? 
+
+
+        In scheduler, the hardware will create a interrupts, which lead the os161 to mainbus_interrupt()
+        to deal with it, in addition, it will also call hardclock() in src/kern/thread/hardclock.c.
+        The hardware run scheduler() to decide which thread to run, in addition, thread_yield is called at the end , in order to
+        yield cpu to another process, while the current process is runable.
+        
+
+question9:
+
+
+        Wchan_sleep is used in the P function, 
+        This function will suspends the current thread and make a context switch,when the value of semaphore is less or equal to zero. 
+        wchan_wakeone() is used in the V function. 
+        This function will wake up one thread, sleeping on a wait channel, when the value of semaphore is greater than zero.
+        actually, semaphore is a value to decide the action of thread by change its value less or grater thanzero.
+
+
+question10:
+How does the implementation of wchan ensure that a thread never misses a wakeup signal: 
+that another thread cannot attempt to awaken the first thread just as it is preparing to sleep,
+but before it is actually placed into the sleep queue?    
+
+        Firstly, all the waiting channels are stored in a queue structure. This queue structure will be used by multiple threads. 
+        however, when a wakeup signal enter, this waked thraed will check whether it already holds the spinlock, 
+        otherwise it will acquire a spinlock when there is only one spinlock associated with the waiting channel.
+        this prevent system making mistake if many threads try to use this waiting queue.
+
+
+
+
+
+
+
+
