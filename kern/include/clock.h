@@ -46,7 +46,6 @@
 
 /* hardclocks per second */
 
-#define HZ  100
 
 #if OPT_SYNCHPROBS
 /* Make synchronization more exciting :) */
